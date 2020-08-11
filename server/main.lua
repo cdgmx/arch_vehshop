@@ -239,6 +239,7 @@ ESX.RegisterServerCallback('blue_vehicleshop:buyVehicleSociety', function (sourc
 	TriggerEvent('esx_addonaccount:getSharedAccount', 'society_' .. society, function (account)
 		if account.money >= vehicleData.price then
 			account.removeMoney(vehicleData.price)
+
 			--should not insert to database, need to get first--
 
 			MySQL.Async.execute('INSERT INTO cardealer_vehicles (vehicle, price,status) VALUES (@vehicle, @price,@status)', {
@@ -318,6 +319,52 @@ ESX.RegisterServerCallback('blue_vehicleshop:getRentedVehicles', function (sourc
 		cb(vehicles)
 	end)
 end)
+
+
+---Retrieve from port event--
+RegisterServerEvent('blue_vehicleshop:retrieve_veh')
+AddEventHandler('blue_vehicleshop:retrieve_veh', function(vehicleModel)
+	--local _source = source
+
+	MySQL.Async.fetchAll('SELECT * FROM cardealer_vehicles WHERE vehicle = @vehicle LIMIT 1', {
+		['@vehicle'] = vehicleModel
+	}, function (result)
+
+		if result[1] then
+			local id    = result[1].id
+
+			MySQL.Async.execute('DELETE FROM cardealer_vehicles WHERE id = @id', {  --delete the vehicle from retrieving list 
+																			--(it will spawn at port with x plate) 
+				['@id'] = id
+			})
+
+			--(will change)TriggerClientEvent('esx:showNotification', _source, _U('vehicle_sold_for', vehicleModel, ESX.Math.GroupDigits(price)))
+		else
+
+			print(('blue_vehicleshop: %s attempted selling an invalid vehicle!'):format(GetPlayerIdentifiers(_source)[1]))
+		end
+
+	end)
+end)
+
+ESX.RegisterServerCallback('blue_vehicleshop:getRentedVehicles', function (source, cb)
+	MySQL.Async.fetchAll('SELECT * FROM rented_vehicles ORDER BY player_name ASC', {}, function (result)
+		local vehicles = {}
+
+		for i=1, #result, 1 do
+			table.insert(vehicles, {
+				name       = result[i].vehicle,
+				plate      = result[i].plate,
+				playerName = result[i].player_name
+			})
+		end
+
+		cb(vehicles)
+	end)
+end)
+
+
+
 
 ESX.RegisterServerCallback('blue_vehicleshop:giveBackVehicle', function (source, cb, plate)
 	MySQL.Async.fetchAll('SELECT * FROM rented_vehicles WHERE plate = @plate', {

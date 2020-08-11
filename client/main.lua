@@ -160,8 +160,25 @@ function RetrievePort()
 			local status = data.current.status
 
 			DeleteShopInsideVehicles()
+
 			if status == 0 then
 				ESX.ShowNotification('vehicle is still pending at port')
+				
+				ESX.Game.SpawnVehicle('blista', Config.Zones.ShopOutside.Pos, Config.Zones.ShopOutside.Heading, function (vehicle)
+					
+				------edit here---
+					local newPlate     = 'X'
+					local vehicleProps = ESX.Game.GetVehicleProperties(vehicle)
+					vehicleProps.plate = newPlate
+					SetVehicleNumberPlateText(vehicle, newPlate)
+				end)
+
+				TriggerServerEvent('blue_vehicleshop:retrieve_veh', data.current.value)
+				Citizen.Wait(300)
+				menu.close()
+				RetrievePort()
+				
+
 				
 			else
 				ESX.ShowNotification('vehicle is  port')
