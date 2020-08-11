@@ -239,10 +239,12 @@ ESX.RegisterServerCallback('blue_vehicleshop:buyVehicleSociety', function (sourc
 	TriggerEvent('esx_addonaccount:getSharedAccount', 'society_' .. society, function (account)
 		if account.money >= vehicleData.price then
 			account.removeMoney(vehicleData.price)
+			--should not insert to database, need to get first--
 
-			MySQL.Async.execute('INSERT INTO cardealer_vehicles (vehicle, price) VALUES (@vehicle, @price)', {
+			MySQL.Async.execute('INSERT INTO cardealer_vehicles (vehicle, price,status) VALUES (@vehicle, @price,@status)', {
 				['@vehicle'] = vehicleData.model,
-				['@price']   = vehicleData.price
+				['@price']   = vehicleData.price,
+				['@status']   = 0
 			}, function(rowsChanged)
 				cb(true)
 			end)
@@ -260,7 +262,8 @@ ESX.RegisterServerCallback('blue_vehicleshop:getCommercialVehicles', function (s
 		for i=1, #result, 1 do
 			table.insert(vehicles, {
 				name  = result[i].vehicle,
-				price = result[i].price
+				price = result[i].price,
+				status = result[i].status
 			})
 		end
 
