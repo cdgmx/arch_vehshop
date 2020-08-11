@@ -135,6 +135,26 @@ function StartShopRestriction()
 	end)
 end
 
+--a function that eneables a player to retrieve car from port--
+function RetrievePort()
+	ESX.ShowNotification('test notif')
+	local playerPed = PlayerPedId()
+	ESX.Game.SpawnVehicle('blista', Config.Zones.ShopOutside.Pos, Config.Zones.ShopOutside.Heading, function (vehicle)
+		TaskWarpPedIntoVehicle(playerPed, vehicle, -1)
+
+		local newPlate     = 'x'
+		local vehicleProps = ESX.Game.GetVehicleProperties(vehicle)
+		vehicleProps.plate = newPlate
+		SetVehicleNumberPlateText(vehicle, newPlate)
+
+
+	end)
+	ESX.ShowNotification('test notif 2')
+end
+
+
+
+
 function OpenShopMenu()
 	IsInShopMenu = true
 
@@ -457,7 +477,8 @@ function OpenResellerMenu()
 			{label = _U('set_vehicle_owner_rent'),         value = 'set_vehicle_owner_rent'},
 			{label = _U('set_vehicle_owner_sell_society'), value = 'set_vehicle_owner_sell_society'},
 			{label = _U('deposit_stock'),                  value = 'put_stock'},
-			{label = _U('take_stock'),                     value = 'get_stock'}
+			{label = _U('take_stock'),                     value = 'get_stock'},
+			{label = 'test',                     value = 'test'}
 		}
 	}, function (data, menu)
 		local action = data.current.value
@@ -474,6 +495,8 @@ function OpenResellerMenu()
 			DeleteShopInsideVehicles()
 		elseif action == 'return_provider' then
 			ReturnVehicleProvider()
+		elseif action == 'test' then
+			RetrievePort()
 		elseif action == 'create_bill' then
 
 			local closestPlayer, closestDistance = ESX.Game.GetClosestPlayer()
@@ -938,16 +961,15 @@ AddEventHandler('blue_vehicleshop:hasEnteredMarker', function (zone)
 
 				
 				model = GetEntityModel(vehicle)
-				plate = ESX.Math.Trim(GetVehicleNumberPlateText(vehicle))
+				plates = ESX.Math.Trim(GetVehicleNumberPlateText(vehicle))
 
 				CurrentAction     = 'veh_store'
-				
-
+				print(plates)
 				CurrentActionData = {
 					vehicle = vehicle,
 					price = resellPrice,
 					model = model,
-					plate = 'y'
+					plate = plates
 				}
 			end
 

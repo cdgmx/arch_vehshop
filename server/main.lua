@@ -430,7 +430,7 @@ ESX.RegisterServerCallback('blue_vehicleshop:veh_store', function (source, cb, p
 		local vehicle_data = {}
 
 		for i=1, #result, 1 do
-			if plate == 'x' then
+			if plate == 'X' then
 
 				cb(true)
 
