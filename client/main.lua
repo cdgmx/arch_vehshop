@@ -207,6 +207,7 @@ function OpenShopMenu()
 		}, function(data2, menu2)
 			if data2.current.value == 'yes' then
 				if Config.EnablePlayerManagement then
+					----this is where we edit our custom  job flow arch--
 					ESX.TriggerServerCallback('blue_vehicleshop:buyVehicleSociety', function(hasEnoughMoney)
 						if hasEnoughMoney then
 							IsInShopMenu = false
@@ -226,6 +227,7 @@ function OpenShopMenu()
 							menu2.close()
 							menu.close()
 
+							ESX.ShowNotification(_U('test debug'))
 							ESX.ShowNotification(_U('vehicle_purchased'))
 						else
 							ESX.ShowNotification(_U('broke_company'))
@@ -266,7 +268,7 @@ function OpenShopMenu()
 											if Config.EnableOwnedVehicles then
 												TriggerServerEvent('blue_vehicleshop:setVehicleOwned', vehicleProps)
 											end
-
+											
 											ESX.ShowNotification(_U('vehicle_purchased'))
 										end)
 
@@ -278,7 +280,7 @@ function OpenShopMenu()
 								end, vehicleData.model)
 
 							elseif data3.current.value == 'society' then
-
+								
 								ESX.TriggerServerCallback('blue_vehicleshop:buyVehicleSociety', function (hasEnoughMoney)
 									if hasEnoughMoney then
 										IsInShopMenu = false
@@ -297,6 +299,7 @@ function OpenShopMenu()
 											vehicleProps.plate = newPlate
 											SetVehicleNumberPlateText(vehicle, newPlate)
 											TriggerServerEvent('blue_vehicleshop:setVehicleOwnedSociety', playerData.job.name, vehicleProps)
+											
 											ESX.ShowNotification(_U('vehicle_purchased'))
 										end)
 
@@ -330,7 +333,7 @@ function OpenShopMenu()
 									if Config.EnableOwnedVehicles then
 										TriggerServerEvent('blue_vehicleshop:setVehicleOwned', vehicleProps)
 									end
-
+									
 									ESX.ShowNotification(_U('vehicle_purchased'))
 								end)
 
@@ -386,6 +389,7 @@ function OpenShopMenu()
 	end)
 
 end
+---end of openshop menu----
 
 function WaitForVehicleToLoad(modelHash)
 	modelHash = (type(modelHash) == 'number' and modelHash or GetHashKey(modelHash))
@@ -610,13 +614,16 @@ end
 
 function OpenPopVehicleMenu()
 	ESX.TriggerServerCallback('blue_vehicleshop:getCommercialVehicles', function (vehicles)
+		
 		local elements = {}
 
 		for i=1, #vehicles, 1 do
 			table.insert(elements, {
 				label = ('%s [MSRP <span style="color:green;">%s</span>]'):format(vehicles[i].name, _U('generic_shopitem', ESX.Math.GroupDigits(vehicles[i].price))),
-				value = vehicles[i].name
-			})
+				value = vehicles[i].name,
+				--adding status--
+				status = vehicles[i].status
+		})
 		end
 
 		ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'commercial_vehicles', {
@@ -626,21 +633,29 @@ function OpenPopVehicleMenu()
 			elements = elements
 		}, function (data, menu)
 			local model = data.current.value
+			local status = data.current.status
 
 			DeleteShopInsideVehicles()
+			if status == 1 then
+				
+				ESX.Game.SpawnVehicle(model, Config.Zones.ShopInside.Pos, Config.Zones.ShopInside.Heading, function (vehicle)
+					table.insert(LastVehicles, vehicle)
 
-			ESX.Game.SpawnVehicle(model, Config.Zones.ShopInside.Pos, Config.Zones.ShopInside.Heading, function (vehicle)
-				table.insert(LastVehicles, vehicle)
-
-				for i=1, #Vehicles, 1 do
-					if model == Vehicles[i].model then
-						CurrentVehicleData = Vehicles[i]
-						break
+					for i=1, #Vehicles, 1 do
+						if model == Vehicles[i].model then
+							CurrentVehicleData = Vehicles[i]
+							break
+						end
 					end
-				end
-			end)
+				
+				end)
+			else
+				ESX.ShowNotification('vehicle is still pending at port')
+			end 
+
 		end, function (data, menu)
 			menu.close()
+			
 		end)
 	end)
 end
