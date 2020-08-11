@@ -260,11 +260,13 @@ ESX.RegisterServerCallback('blue_vehicleshop:getCommercialVehicles', function (s
 		local vehicles = {}
 
 		for i=1, #result, 1 do
-			table.insert(vehicles, {
-				name  = result[i].vehicle,
-				price = result[i].price,
-				status = result[i].status
-			})
+			if result[i].status == 1 then --if vehicle is still not retrieve (0) then do not list in menu
+				table.insert(vehicles, {
+					name  = result[i].vehicle,
+					price = result[i].price,
+					status = result[i].status
+				})
+			end
 		end
 
 		cb(vehicles)
@@ -445,6 +447,32 @@ ESX.RegisterServerCallback('blue_vehicleshop:veh_store', function (source, cb, p
 	
 
 end)
+
+
+
+--register another callback for retrieving car from port--
+ESX.RegisterServerCallback('blue_vehicleshop:veh_retrieve', function (source, cb)
+	
+	MySQL.Async.fetchAll('SELECT * FROM cardealer_vehicles ORDER BY vehicle ASC', {}, function (result)
+		local vehicles_data = {}
+
+		for i=1, #result, 1 do
+			if result[i].status == 0 then --if vehicle is still not retrieve (0) thenlist in retrieve menu
+				table.insert(vehicles_data, {
+					name  = result[i].vehicle,
+					price = result[i].price,
+					status = result[i].status
+				})
+			end
+		end
+
+		cb(vehicles_data)
+
+	end)
+
+
+end)
+
 
 
 ESX.RegisterServerCallback('blue_vehicleshop:getStockItems', function (source, cb)

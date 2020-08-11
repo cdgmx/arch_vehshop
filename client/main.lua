@@ -137,19 +137,42 @@ end
 
 --a function that eneables a player to retrieve car from port--
 function RetrievePort()
-	ESX.ShowNotification('test notif')
-	local playerPed = PlayerPedId()
-	ESX.Game.SpawnVehicle('blista', Config.Zones.ShopOutside.Pos, Config.Zones.ShopOutside.Heading, function (vehicle)
-		TaskWarpPedIntoVehicle(playerPed, vehicle, -1)
+	ESX.TriggerServerCallback('blue_vehicleshop:veh_retrieve', function (vehicles)
+		
+		local elements = {}
 
-		local newPlate     = 'x'
-		local vehicleProps = ESX.Game.GetVehicleProperties(vehicle)
-		vehicleProps.plate = newPlate
-		SetVehicleNumberPlateText(vehicle, newPlate)
+		for i=1, #vehicles, 1 do
+			table.insert(elements, {
+				label = ('%s [MSRP <span style="color:green;">%s</span>]'):format(vehicles[i].name, _U('generic_shopitem', ESX.Math.GroupDigits(vehicles[i].price))),
+				value = vehicles[i].name,
+				--adding status--
+				status = vehicles[i].status
+		})
+		end
 
+		ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'commercial_vehicles', {
+			css      = 'concesionnaire',
+			title    = _U('vehicle_dealer'),
+			align    = 'top-left',
+			elements = elements
+		}, function (data, menu)
+			local model = data.current.value
+			local status = data.current.status
 
+			DeleteShopInsideVehicles()
+			if status == 0 then
+				ESX.ShowNotification('vehicle is still pending at port')
+				
+			else
+				ESX.ShowNotification('vehicle is  port')
+				
+			end 
+
+		end, function (data, menu)
+			menu.close()
+			
+		end)
 	end)
-	ESX.ShowNotification('test notif 2')
 end
 
 
@@ -930,7 +953,7 @@ AddEventHandler('blue_vehicleshop:hasEnteredMarker', function (zone)
 				CurrentAction     = 'resell_vehicle'
 				CurrentActionMsg  = _U('sell_menu', vehicleData.name, ESX.Math.GroupDigits(resellPrice))
 
-				CurrentActionData = {
+				CurrentActionData = {	
 					vehicle = vehicle,
 					label = vehicleData.name,
 					price = resellPrice,
@@ -964,7 +987,7 @@ AddEventHandler('blue_vehicleshop:hasEnteredMarker', function (zone)
 				plates = ESX.Math.Trim(GetVehicleNumberPlateText(vehicle))
 
 				CurrentAction     = 'veh_store'
-				print(plates)
+				
 				CurrentActionData = {
 					vehicle = vehicle,
 					price = resellPrice,
