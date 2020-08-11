@@ -422,6 +422,31 @@ ESX.RegisterServerCallback('blue_vehicleshop:resellVehicle', function (source, c
 end)
 
 
+--callback for store vehicle--
+ESX.RegisterServerCallback('blue_vehicleshop:veh_store', function (source, cb, plate, model)
+
+	MySQL.Async.fetchAll('SELECT * FROM cardealer_vehicles ORDER BY vehicle ASC', {}, function (result)
+
+		local vehicle_data = {}
+
+		for i=1, #result, 1 do
+			if plate == 'x' then
+
+				cb(true)
+
+			else
+				cb(false)
+			end
+		end
+		
+	
+		
+	end)
+	
+
+end)
+
+
 ESX.RegisterServerCallback('blue_vehicleshop:getStockItems', function (source, cb)
 	TriggerEvent('esx_addoninventory:getSharedInventory', 'society_cardealer', function(inventory)
 		cb(inventory.items)

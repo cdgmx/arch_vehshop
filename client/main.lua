@@ -917,6 +917,41 @@ AddEventHandler('blue_vehicleshop:hasEnteredMarker', function (zone)
 			end
 
 		end
+	
+	-----store veh from port----
+	elseif zone == 'Vehstore' then
+
+		local playerPed = PlayerPedId()
+
+		if IsPedSittingInAnyVehicle(playerPed) then
+
+			local vehicle     = GetVehiclePedIsIn(playerPed, false)
+			local vehicleData, model, resellPrice, plate
+
+			if GetPedInVehicleSeat(vehicle, -1) == playerPed then
+				for i=1, #Vehicles, 1 do
+					if GetHashKey(Vehicles[i].model) == GetEntityModel(vehicle) then
+						vehicleData = Vehicles[i]
+						break
+					end
+				end
+
+				
+				model = GetEntityModel(vehicle)
+				plate = ESX.Math.Trim(GetVehicleNumberPlateText(vehicle))
+
+				CurrentAction     = 'veh_store'
+				
+
+				CurrentActionData = {
+					vehicle = vehicle,
+					price = resellPrice,
+					model = model,
+					plate = 'y'
+				}
+			end
+
+		end
 
 	elseif zone == 'BossActions' and Config.EnablePlayerManagement and ESX.PlayerData.job ~= nil and ESX.PlayerData.job.name == 'cardealer' and ESX.PlayerData.job.grade_name == 'boss' then
 
@@ -934,7 +969,7 @@ AddEventHandler('blue_vehicleshop:hasExitedMarker', function (zone)
 
 	CurrentAction = nil
 end)
-
+--needed for stuck players at shop just edit ---
 AddEventHandler('onResourceStop', function(resource)
 	if resource == GetCurrentResourceName() then
 		if IsInShopMenu then
@@ -1072,10 +1107,26 @@ Citizen.CreateThread(function()
 							ESX.ShowNotification(_U('not_yours'))
 						end
 					end, CurrentActionData.plate, CurrentActionData.model)
+
+				--add current action fo rvehicles store--
+				elseif CurrentAction == 'veh_store' then
+
+					ESX.TriggerServerCallback('blue_vehicleshop:veh_store', function(vehicle_match)
+
+						if vehicle_match then
+							ESX.Game.DeleteVehicle(CurrentActionData.vehicle)
+							ESX.ShowNotification('from port')
+						else
+							ESX.ShowNotification('not from port')
+						end
+					end, CurrentActionData.plate, CurrentActionData.model)
+				------end-------
+
 				elseif CurrentAction == 'boss_actions_menu' then
 					OpenBossActionsMenu()
 				end
-
+				
+				
 				CurrentAction = nil
 			end
 		end
