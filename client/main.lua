@@ -146,7 +146,8 @@ function RetrievePort()
 				label = ('%s [MSRP <span style="color:green;">%s</span>]'):format(vehicles[i].name, _U('generic_shopitem', ESX.Math.GroupDigits(vehicles[i].price))),
 				value = vehicles[i].name,
 				--adding status--
-				status = vehicles[i].status
+				status = vehicles[i].status,
+				plate = vehicles[i].plate
 		})
 		end
 
@@ -158,32 +159,43 @@ function RetrievePort()
 		}, function (data, menu)
 			local model = data.current.value
 			local status = data.current.status
+			local plate = data.current.plate
 
 			DeleteShopInsideVehicles()
 
 			if status == 0 then
 				ESX.ShowNotification('vehicle is still pending at port')
+
+				print(data.current.value)
+				print(data.current.plate)
 				
-				ESX.Game.SpawnVehicle('blista', Config.Zones.ShopOutside.Pos, Config.Zones.ShopOutside.Heading, function (vehicle)
+				TriggerServerEvent('blue_vehicleshop:retrieve_veh', data.current.value, data.current.plate) -- pass model and plate to server event
+				menu.close()
+				Citizen.Wait(2000)
+
+
+				
+				ESX.Game.SpawnVehicle(model, Config.Zones.Port.Pos, Config.Zones.Port.Heading, function (vehicle)
 					
 				------edit here---
-					local newPlate     = 'X'
+					local newPlate     = plate
 					local vehicleProps = ESX.Game.GetVehicleProperties(vehicle)
 					vehicleProps.plate = newPlate
 					SetVehicleNumberPlateText(vehicle, newPlate)
 				end)
 
-				TriggerServerEvent('blue_vehicleshop:retrieve_veh', data.current.value)
-				Citizen.Wait(300)
-				menu.close()
-				RetrievePort()
+				
+				
+				RetrievePort() --dupli warning
+				
 				
 
 				
 			else
 				ESX.ShowNotification('vehicle is  port')
 				
-			end 
+			end
+			
 
 		end, function (data, menu)
 			menu.close()
@@ -267,10 +279,16 @@ function OpenShopMenu()
 		}, function(data2, menu2)
 			if data2.current.value == 'yes' then
 				if Config.EnablePlayerManagement then
-					----this is where we edit our custom  job flow arch--
+					----this is where we edit our custom  job flow arch-- might confilict iwth other elsif
+					local newPlate = GeneratePlate() --ceate new plate
+							
+					
+
 					ESX.TriggerServerCallback('blue_vehicleshop:buyVehicleSociety', function(hasEnoughMoney)
 						if hasEnoughMoney then
 							IsInShopMenu = false
+
+							
 
 							DeleteShopInsideVehicles()
 
@@ -292,7 +310,7 @@ function OpenShopMenu()
 						else
 							ESX.ShowNotification(_U('broke_company'))
 						end
-					end, 'cardealer', vehicleData.model)
+					end, 'cardealer', vehicleData.model, newPlate)
 				else
 					local playerData = ESX.GetPlayerData()
 
@@ -1172,16 +1190,17 @@ Citizen.CreateThread(function()
 
 				--add current action fo rvehicles store--
 				elseif CurrentAction == 'veh_store' then
-
+					
+					
 					ESX.TriggerServerCallback('blue_vehicleshop:veh_store', function(vehicle_match)
-
+						
 						if vehicle_match then
 							ESX.Game.DeleteVehicle(CurrentActionData.vehicle)
 							ESX.ShowNotification('from port')
 						else
 							ESX.ShowNotification('not from port')
 						end
-					end, CurrentActionData.plate, CurrentActionData.model)
+					end, CurrentActionData.plate, CurrentActionData.model, CurrentActionData.price)
 				------end-------
 
 				elseif CurrentAction == 'boss_actions_menu' then

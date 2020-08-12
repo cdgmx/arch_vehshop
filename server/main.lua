@@ -226,9 +226,10 @@ ESX.RegisterServerCallback('blue_vehicleshop:buyVehicle', function (source, cb, 
 	end
 end)
 
-ESX.RegisterServerCallback('blue_vehicleshop:buyVehicleSociety', function (source, cb, society, vehicleModel)
-	local vehicleData = nil
+ESX.RegisterServerCallback('blue_vehicleshop:buyVehicleSociety', function (source, cb, society, vehicleModel, newPlate)
 
+	local vehicleData = nil
+	
 	for i=1, #Vehicles, 1 do
 		if Vehicles[i].model == vehicleModel then
 			vehicleData = Vehicles[i]
@@ -242,10 +243,11 @@ ESX.RegisterServerCallback('blue_vehicleshop:buyVehicleSociety', function (sourc
 
 			--should not insert to database, need to get first--
 
-			MySQL.Async.execute('INSERT INTO cardealer_vehicles (vehicle, price,status) VALUES (@vehicle, @price,@status)', {
+			MySQL.Async.execute('INSERT INTO cardealer_vehicles (vehicle, price,status,plate) VALUES (@vehicle, @price,@status,@plate)', {
 				['@vehicle'] = vehicleData.model,
 				['@price']   = vehicleData.price,
-				['@status']   = 0
+				['@status']   = 0,
+				['@plate']  = newPlate
 			}, function(rowsChanged)
 				cb(true)
 			end)
@@ -321,31 +323,39 @@ ESX.RegisterServerCallback('blue_vehicleshop:getRentedVehicles', function (sourc
 end)
 
 
----Retrieve from port event--
+---Retrieve from port event-- delete
 RegisterServerEvent('blue_vehicleshop:retrieve_veh')
-AddEventHandler('blue_vehicleshop:retrieve_veh', function(vehicleModel)
+AddEventHandler('blue_vehicleshop:retrieve_veh', function(vehicleModel, vehiclePlate)
 	--local _source = source
 
-	MySQL.Async.fetchAll('SELECT * FROM cardealer_vehicles WHERE vehicle = @vehicle LIMIT 1', {
-		['@vehicle'] = vehicleModel
+	MySQL.Async.fetchAll('SELECT * FROM cardealer_vehicles WHERE vehicle = @vehicle AND plate = @plate LIMIT 1', {
+
+		['@vehicle'] = vehicleModel, -- need to satisfy these two paramaneters the plate eadn the model 
+		['@plate'] = vehiclePlate
+
 	}, function (result)
 
 		if result[1] then
 			local id    = result[1].id
+			local vehicle = result[1].vehicle
+			local plate = result[1].plate
 
-			MySQL.Async.execute('DELETE FROM cardealer_vehicles WHERE id = @id', {  --delete the vehicle from retrieving list 
-																			--(it will spawn at port with x plate) 
-				['@id'] = id
+			MySQL.Async.execute('UPDATE cardealer_vehicles SET `status` = @status WHERE vehicle = @vehicle AND plate= @plate', {
+				['@vehicle'] = vehicle,
+				['@plate'] = plate,
+				['@status'] = 2 -- in transit
 			})
+		
 
 			--(will change)TriggerClientEvent('esx:showNotification', _source, _U('vehicle_sold_for', vehicleModel, ESX.Math.GroupDigits(price)))
 		else
-
 			print(('blue_vehicleshop: %s attempted selling an invalid vehicle!'):format(GetPlayerIdentifiers(_source)[1]))
 		end
 
 	end)
 end)
+--------
+
 
 ESX.RegisterServerCallback('blue_vehicleshop:getRentedVehicles', function (source, cb)
 	MySQL.Async.fetchAll('SELECT * FROM rented_vehicles ORDER BY player_name ASC', {}, function (result)
@@ -472,27 +482,21 @@ end)
 
 
 --callback for store vehicle--
-ESX.RegisterServerCallback('blue_vehicleshop:veh_store', function (source, cb, plate, model)
+ESX.RegisterServerCallback('blue_vehicleshop:veh_store', function (source, cb, plate, model,price)
 
-	MySQL.Async.fetchAll('SELECT * FROM cardealer_vehicles ORDER BY vehicle ASC', {}, function (result)
 
-		local vehicle_data = {}
+	local vehicleData = nil
 
-		for i=1, #result, 1 do
-			if plate == 'X' then
-
-				cb(true)
-
-			else
-				cb(false)
-			end
-		end
-		
-	
-		
-	end)
-	
-
+	if plate == 'X' then
+		MySQL.Async.execute('INSERT INTO cardealer_vehicles (vehicle, price,status) VALUES (@vehicle, @price,@status)',
+		{
+			['@vehicle'] = model,
+			['@price']   = price,
+			['@status']   = 1
+			
+		})
+		cb(true)
+	end
 end)
 
 
@@ -508,7 +512,8 @@ ESX.RegisterServerCallback('blue_vehicleshop:veh_retrieve', function (source, cb
 				table.insert(vehicles_data, {
 					name  = result[i].vehicle,
 					price = result[i].price,
-					status = result[i].status
+					status = result[i].status,
+					plate = result[i].plate
 				})
 			end
 		end
