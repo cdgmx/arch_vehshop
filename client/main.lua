@@ -1025,8 +1025,7 @@ AddEventHandler('blue_vehicleshop:hasEnteredMarker', function (zone)
 				
 				CurrentActionData = {
 					vehicle = vehicle,
-					price = resellPrice,
-					model = model,
+					model = vehicleData.model,
 					plate = plates
 				}
 			end
@@ -1191,7 +1190,8 @@ Citizen.CreateThread(function()
 				--add current action fo rvehicles store--
 				elseif CurrentAction == 'veh_store' then
 					
-					
+					print(CurrentActionData.plate)
+					print(CurrentActionData.model)
 					ESX.TriggerServerCallback('blue_vehicleshop:veh_store', function(vehicle_match)
 						
 						if vehicle_match then
@@ -1200,7 +1200,7 @@ Citizen.CreateThread(function()
 						else
 							ESX.ShowNotification('not from port')
 						end
-					end, CurrentActionData.plate, CurrentActionData.model, CurrentActionData.price)
+					end, CurrentActionData.plate, CurrentActionData.model)
 				------end-------
 
 				elseif CurrentAction == 'boss_actions_menu' then

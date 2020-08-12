@@ -482,21 +482,32 @@ end)
 
 
 --callback for store vehicle--
-ESX.RegisterServerCallback('blue_vehicleshop:veh_store', function (source, cb, plate, model,price)
+ESX.RegisterServerCallback('blue_vehicleshop:veh_store', function (source, cb, vehiclePlate, vehicleModel)
 
 
-	local vehicleData = nil
+	--local vehicleData = nil
+	MySQL.Async.fetchAll('SELECT * FROM cardealer_vehicles WHERE vehicle = @vehicle AND plate = @plate LIMIT 1', {
 
-	if plate == 'X' then
-		MySQL.Async.execute('INSERT INTO cardealer_vehicles (vehicle, price,status) VALUES (@vehicle, @price,@status)',
-		{
-			['@vehicle'] = model,
-			['@price']   = price,
-			['@status']   = 1
-			
-		})
-		cb(true)
-	end
+		['@vehicle'] = vehicleModel,
+		['@plate'] = vehiclePlate	
+
+	}, function (result)
+
+		if result[1] then
+			local plate    = result[1].plate
+			local vehicle = result[1].vehicle
+
+			MySQL.Async.execute('UPDATE cardealer_vehicles SET `status` = @status WHERE vehicle = @vehicle AND plate = @plate',
+			{ --update the status to delivered/stored
+				['@plate'] = plate,
+				['@vehicle'] = vehicle,
+				['@status'] = 1 -- delivered/stored
+			})
+			cb(true)
+		else
+			cb(false)
+		end
+	end)
 end)
 
 
