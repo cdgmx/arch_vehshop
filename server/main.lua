@@ -519,7 +519,7 @@ ESX.RegisterServerCallback('blue_vehicleshop:veh_retrieve', function (source, cb
 		local vehicles_data = {}
 
 		for i=1, #result, 1 do
-			if result[i].status == 0 then --if vehicle is still not retrieve (0) thenlist in retrieve menu
+			if result[i].status == 0 or result[i].status == 2 then --if vehicle is still not retrieve (0) thenlist in retrieve menu
 				table.insert(vehicles_data, {
 					name  = result[i].vehicle,
 					price = result[i].price,

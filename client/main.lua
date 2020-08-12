@@ -140,14 +140,29 @@ function RetrievePort()
 	ESX.TriggerServerCallback('blue_vehicleshop:veh_retrieve', function (vehicles)
 		
 		local elements = {}
+		local statsym = nil
 
 		for i=1, #vehicles, 1 do
+
+			if vehicles[i].status == 0 then
+				statsym = 'Status:[🔴]'
+			elseif vehicles[i].status == 2 then
+				statsym = 'Status:[🟡]'
+			else
+				statsym = 'Status:[🟢]'
+			end
+
 			table.insert(elements, {
-				label = ('%s [MSRP <span style="color:green;">%s</span>]'):format(vehicles[i].name, _U('generic_shopitem', ESX.Math.GroupDigits(vehicles[i].price))),
+
+				
+
+				label = ('%s %s  [MSRP <span style="color:green;">%s</span>]'):format(vehicles[i].name,statsym, _U('generic_shopitem', 
+				ESX.Math.GroupDigits(vehicles[i].price))),
 				value = vehicles[i].name,
 				--adding status--
 				status = vehicles[i].status,
 				plate = vehicles[i].plate
+
 		})
 		end
 
@@ -164,6 +179,7 @@ function RetrievePort()
 			DeleteShopInsideVehicles()
 
 			if status == 0 then
+
 				ESX.ShowNotification('vehicle is still pending at port')
 
 				print(data.current.value)
@@ -173,9 +189,21 @@ function RetrievePort()
 				menu.close()
 				Citizen.Wait(2000)
 
+				local test = nil
+				local test2 = nil
+				math.randomseed(GetGameTimer())
+				local numrand = math.random(1, 3)
+				print(numrand)
+				print('numrand')
+				
+				test = Config.Port[1].Pos
+				test2 = Config.Port[1].Heading
+			
 
 				
-				ESX.Game.SpawnVehicle(model, Config.Zones.Port.Pos, Config.Zones.Port.Heading, function (vehicle)
+				
+
+				ESX.Game.SpawnVehicle(model,test, test2, function (vehicle)
 					
 				------edit here---
 					local newPlate     = plate
@@ -183,7 +211,7 @@ function RetrievePort()
 					vehicleProps.plate = newPlate
 					SetVehicleNumberPlateText(vehicle, newPlate)
 				end)
-
+				
 				
 				
 				RetrievePort() --dupli warning
@@ -192,7 +220,7 @@ function RetrievePort()
 
 				
 			else
-				ESX.ShowNotification('vehicle is  port')
+				ESX.ShowNotification('vehicle already in transit')
 				
 			end
 			
@@ -536,7 +564,7 @@ function OpenResellerMenu()
 			{label = _U('set_vehicle_owner_sell_society'), value = 'set_vehicle_owner_sell_society'},
 			{label = _U('deposit_stock'),                  value = 'put_stock'},
 			{label = _U('take_stock'),                     value = 'get_stock'},
-			{label = 'test',                     value = 'test'}
+			{label = '🚚 Delivery Status',                     value = 'test'}
 		}
 	}, function (data, menu)
 		local action = data.current.value
