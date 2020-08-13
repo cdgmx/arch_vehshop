@@ -180,8 +180,7 @@ function RetrievePort()
 
 			if status == 0 then
 
-				ESX.ShowNotification('vehicle is still pending at port')
-
+				
 				print(data.current.value)
 				print(data.current.plate)
 				
@@ -189,21 +188,23 @@ function RetrievePort()
 				menu.close()
 				Citizen.Wait(2000)
 
-				local test = nil
-				local test2 = nil
+				
+				
+
+
 				math.randomseed(GetGameTimer())
 				local numrand = math.random(1, 3)
 				print(numrand)
 				print('numrand')
 				
-				test = Config.Zones.Port.List[1]
-				test2 = Config.Zones.Port.Heading
-			
 
+				local portPos = Config.Zones.Port.List[numrand]
 				
 				
 
-				ESX.Game.SpawnVehicle(model,test, test2, function (vehicle)
+				ESX.ShowNotification('The vehicle is at port ' .. numrand )
+
+				ESX.Game.SpawnVehicle(model, portPos , Config.Zones.Port.Heading, function (vehicle)
 					
 				------edit here---
 					local newPlate     = plate
@@ -220,7 +221,7 @@ function RetrievePort()
 
 				
 			else
-				ESX.ShowNotification('vehicle already in transit')
+				ESX.ShowNotification('The vehicle is already in transit')
 				
 			end
 			
@@ -1117,6 +1118,20 @@ Citizen.CreateThread(function()
 	BeginTextCommandSetBlipName("STRING")
 	AddTextComponentString(_U('car_dealer'))
 	EndTextCommandSetBlipName(blip)
+	local portblip = {}
+	for i =1, #Config.Zones.Port.List do
+		portblip[i] = AddBlipForCoord(Config.Zones.Port.List[i].x, Config.Zones.Port.List[i].y, Config.Zones.Port.List[i].z)
+		SetBlipSprite (portblip[i], 404)
+		SetBlipDisplay(portblip[i], 4)
+		SetBlipScale  (portblip[i], 1.0)
+		SetBlipAsShortRange(portblip[i], true)
+
+		BeginTextCommandSetBlipName("STRING")
+		AddTextComponentString("Port")
+		EndTextCommandSetBlipName(portblip[i])
+	end
+
+
 end)
 
 -- Display markers
@@ -1130,15 +1145,15 @@ Citizen.CreateThread(function()
 
 			
 			if(v.Type ~= -1 and GetDistanceBetweenCoords(coords, v.Pos.x, v.Pos.y, v.Pos.z, true) < Config.DrawDistance) then
-				print(k)
-				DrawMarker(20, v.Pos.x, v.Pos.y, v.Pos.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, v.Size.x, v.Size.y, v.Size.z, 207, 85, 85, 100, false, true, 2, false, false, false, false)
+				
+				DrawMarker(v.Type, v.Pos.x, v.Pos.y, v.Pos.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, v.Size.x, v.Size.y, v.Size.z, 207, 85, 85, 100, true, true, 2, false, false, false, false)
 				
 			end
 
 			if k == 'Port' then
 				for i=1, 3 do
-				print("marker")
-				DrawMarker(24, v.List[i].x, v.List[i].y, v.List[i].z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, v.Size.x, v.Size.y, v.Size.z, 207, 85, 85, 100, false, true, 2, false, false, false, false)
+				
+				DrawMarker(24, v.List[i].x, v.List[i].y, v.List[i].z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, v.Size.x, v.Size.y, v.Size.z, 207, 85, 85, 100, true, true, 2, false, false, false, false)
 				end
 			end
 			
