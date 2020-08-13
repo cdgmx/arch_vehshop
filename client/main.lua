@@ -196,8 +196,8 @@ function RetrievePort()
 				print(numrand)
 				print('numrand')
 				
-				test = Config.Port[1].Pos
-				test2 = Config.Port[1].Heading
+				test = Config.Zones.Port.List[1]
+				test2 = Config.Zones.Port.Heading
 			
 
 				
@@ -1125,11 +1125,25 @@ Citizen.CreateThread(function()
 		Citizen.Wait(0)
 
 		local coords = GetEntityCoords(PlayerPedId())
-
+		
 		for k,v in pairs(Config.Zones) do
+
+			
 			if(v.Type ~= -1 and GetDistanceBetweenCoords(coords, v.Pos.x, v.Pos.y, v.Pos.z, true) < Config.DrawDistance) then
+				print(k)
 				DrawMarker(20, v.Pos.x, v.Pos.y, v.Pos.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, v.Size.x, v.Size.y, v.Size.z, 207, 85, 85, 100, false, true, 2, false, false, false, false)
+				
 			end
+
+			if k == 'Port' then
+				for i=1, 3 do
+				print("marker")
+				DrawMarker(24, v.List[i].x, v.List[i].y, v.List[i].z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, v.Size.x, v.Size.y, v.Size.z, 207, 85, 85, 100, false, true, 2, false, false, false, false)
+				end
+			end
+			
+			
+			
 		end
 	end
 end)
